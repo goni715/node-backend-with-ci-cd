@@ -37,17 +37,19 @@ jobs:
       - name: Configure SSH
         env: 
          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+         EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
          mkdir -p ~/.ssh
          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
          chmod 600 ~/.ssh/id_rsa
          touch ~/.ssh/known_hosts
-         ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+         ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
 
       - name: Deploy to EC2
         env: 
          EC2_HOST: ${{ secrets.EC2_HOST }}
          EC2_USER: ${{ secrets.EC2_USER }}
+         ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
           # Create Deployment Directory
           ssh $EC2_USER@$EC2_HOST "mkdir -p ~/app"
@@ -58,6 +60,9 @@ jobs:
             --exclude='node_modules' \
             --exclude='.github' \
             . $EC2_USER@$EC2_HOST:~/app/
+          
+          # ✅ Create .env file on EC2 from the single GitHub secret
+          ssh $EC2_USER@$EC2_HOST "echo \"$ENV_FILE\" > ~/app/.env"
           
           # install production dependencies on EC2
           ssh $EC2_USER@$EC2_HOST "cd ~/app && export PATH=$PATH:/run/user/1000/fnm_multishells/33715_1760594053530/bin && yarn install --frozen-lockfile"

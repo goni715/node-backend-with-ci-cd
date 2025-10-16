@@ -4,7 +4,7 @@ const app = express();
 const port = 8080;
 
 app.get("/", (req, res) => {
-  res.send("This is My Fisrt Node Back-End with CI/CD with env");
+  res.send("This is Node-Express Back-End with CI/CD with env");
 });
 
 app.listen(port, () => {
